@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/epam_lab_advanced
+    username: Kirill
+    password: susano
+    hikari:
+      maximum-pool-size: 5
+
+  jackson:
+    time-zone: Europe/Minsk
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  web:
+    resources:
+      add-mappings: false
+
+  jpa:
+    open-in-view: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          my-application-oidc:
+            provider: spring
+            client-id: client_id
+            client-secret: client_secret
+            authorization-grant-type: authorization_code
+            scope: openid
+            client-name: my-application-oidc
+        provider:
+          spring:
+            issuer-uri: http://localhost:8082/rest-api-authorization-server

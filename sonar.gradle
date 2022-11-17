@@ -1,0 +1,16 @@
+apply plugin: "org.sonarqube"
+
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'rest_api_ci_cd'
+        property 'sonar.projectKey', 'com.epam.esm'
+        property 'sonar.projectVersion', '1.0'
+
+        property 'sonar.language', 'java'
+        property 'sonar.sourceEncoding', 'UTF-8'
+
+        property 'sonar.host.url', 'http://localhost:9000'
+        property 'sonar.login', 'admin'
+        property 'sonar.password', 'susano'
+    }
+}

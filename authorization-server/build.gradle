@@ -1,0 +1,8 @@
+dependencies {
+    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:0.3.0'
+    implementation "org.springframework.boot:spring-boot-starter-jdbc"
+}
+
+war {
+    archiveFileName = 'rest-api-authorization-server.war'
+}

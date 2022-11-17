@@ -1,0 +1,104 @@
+buildscript {
+	repositories {
+		gradlePluginPortal()
+	}
+	dependencies {
+		classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.7.0'
+		classpath 'io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE'
+	}
+}
+
+plugins {
+	id 'java'
+	id 'jacoco'
+	id 'org.sonarqube' version '3.4.0.2513'
+}
+
+allprojects {
+	group 'com.epam.esm'
+
+	repositories {
+		mavenCentral()
+	}
+}
+
+subprojects {
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+	apply plugin: 'java'
+	apply plugin: 'war'
+	apply plugin: 'org.sonarqube'
+
+	sonarqube {
+		properties {
+			property 'sonar.coverage.jacoco.xmlReportPaths', "$projectDir.parentFile.path/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
+		}
+	}
+
+	configurations.all {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+	}
+
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-web'
+		providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+		implementation 'org.springframework.boot:spring-boot-starter-validation'
+		implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+		implementation 'org.springframework.boot:spring-boot-starter-aop'
+		implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+		implementation 'org.springframework.boot:spring-boot-starter-security'
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+		// https://mvnrepository.com/artifact/org.hibernate/hibernate-envers
+		implementation 'org.hibernate:hibernate-envers:5.6.9.Final'
+
+		// https://mvnrepository.com/artifact/commons-validator/commons-validator
+		implementation 'commons-validator:commons-validator:1.7'
+
+		// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+		implementation 'mysql:mysql-connector-java:8.0.29'
+	}
+
+	tasks.withType(Test).configureEach {
+		useJUnitPlatform()
+	}
+
+	bootWar {
+		enabled = false
+	}
+
+	bootJar {
+		enabled = false
+	}
+
+	jar {
+		enabled = true
+	}
+}
+
+apply from: "$project.rootDir/sonar.gradle"
+
+tasks.register("codeCoverageReport", JacocoReport) {
+	subprojects { subproject ->
+		subproject.plugins.withType(JacocoPlugin).configureEach {
+			subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).configureEach { testTask ->
+				if (testTask.extensions.getByType(JacocoTaskExtension).isEnabled()) {
+					sourceSets subproject.sourceSets.main
+					executionData(testTask)
+				}else{
+					logger.warn('Jacoco extension is disabled for test task \'{}\' in project \'{}\'. this test task will be excluded from jacoco report.',testTask.getName(),subproject.getName())
+				}
+			}
+
+			subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).forEach {
+				rootProject.tasks.codeCoverageReport.dependsOn(it)
+			}
+		}
+	}
+
+	reports {
+		xml.enabled true
+		html.enabled true
+	}
+}
